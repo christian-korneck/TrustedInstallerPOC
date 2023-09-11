@@ -1,35 +1,46 @@
-# TrustedInstaller
+# anyparent
 
-A simple Proof of Concept in Go to spawn a new shell as TrustedInstaller. Read more about how this PoC works on this [blog about TrustedInstaller](https://fourcore.io/blogs/no-more-access-denied-i-am-trustedinstaller). It is important to note that this should be executed as a user which has SeDebugPrivileges. Upon execution, it will automatically ask for UAC in case it is not executed as as an Administrator.
+This is an experimental utility for MS Windows to start a new child process under any existing, currently running parent process. The new subprocess will run under the same user as the parent process and has the same privileges.
 
-## POC
+This can be useful for all sorts of troubleshooting. For example you could open a `cmd.exe` shell that has the same privileges as a [Virtual Service Account](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/understand-service-accounts#virtual-accounts) and interactively test things like file system access with the same privileges as the service process.
 
-1. Clone the repository
+## usage
 
-```
-$ git clone https://github.com/FourCoreLabs/TrustedInstallerPOC.git
-```
-
-2. Ensure you have Go installed. This POC has been tested on Go 1.19.
-3. Either build the binary and execute it
+To use the tool, admin privileges (for `SeDebugPrivileges`) are required (but the started process might have less privileges, depending on its parent).
 
 ```
-$ go build ti
-$ ./ti.exe
-```
-
-4. Or run it directly
-
-```
-$ go run ti
+anyparent -p <pid> [-c] <cmdline>
 ```
 
 
-This will spawn a new cmd shell with TrustedInstaller privileges which can be confirmed by running the command `whoami /all`
+- `-p` pid (required)
+- `-c` console mode (optional, default=false): set this for console applications, including cmd.exe or powershell.exe, etc (this will start conhost, otherwise there won't be any console output)
 
-![demo](https://user-images.githubusercontent.com/26490648/219342533-79d0cf34-0bf2-4f63-b805-34fca5aff012.gif)
+When no `<cmdline>` is provided, a cmd.exe shell is started.
 
-## API
+## example:
 
-- RunAsTrustedInstaller
-  - Use the `RunAsTrustedInstaller` function to pass any executable to be run with TrustedInstaller privileges.
+Let's start a cmd.exe shell as subprocess for this MS Paint parent process:
+
+```batch
+$ tasklist /fi "imagename eq mspaint.exe"
+Image Name   PID 
+============ ======
+mspaint.exe  23484 
+```
+
+from an elevated shell run:
+```
+anyparent.exe -p 23484 -c cmd.exe
+```
+
+And we will see a `cmd.exe` shell, that is a parent process of `mspaint.exe`. It also runs under the same user and with the same privileges as `mspaint.exe` (check i.e. with `whoami /all`).
+
+![screenshot process tree](_static/image.png)
+
+## origin
+
+This is a fork of the excellent [FourCoreLabs/TrustedInstallerPOC](https://github.com/FourCoreLabs/TrustedInstallerPOC.git), which is made for a specific use case (creating a specific subprocess for one specific Windows service). The original author has also written [a blog post about how it works](https://fourcore.io/blogs/no-more-access-denied-i-am-trustedinstaller).
+
+`anyparent` makes some minor modifications to allow using this technique for different use cases. That's also why I picked a new name.
+

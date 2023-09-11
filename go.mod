@@ -1,4 +1,4 @@
-module ti
+module github.com/christian-korneck/anyparent
 
 go 1.20
 
