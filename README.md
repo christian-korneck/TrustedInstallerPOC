@@ -2,7 +2,7 @@
 
 This is an experimental utility for MS Windows to start a new child process under any existing, currently running parent process. The new subprocess will run under the same user as the parent process and has the same privileges.
 
-This can be useful for all sorts of troubleshooting. For example you could open a `cmd.exe` shell that has the same privileges as a [Virtual Service Account](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/understand-service-accounts#virtual-accounts) and interactively test things like file system access with the same privileges as the service process.
+This can be useful for all sorts of troubleshooting. For example you could open a `cmd.exe` shell that has the same privileges as a service account and interactively test things like file system access with the same privileges as the service process.
 
 ## usage
 
